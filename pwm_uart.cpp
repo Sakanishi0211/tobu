@@ -69,11 +69,11 @@ uint8_t pwm_settei(void){
     gpio_set_function(2, GPIO_FUNC_PWM);
     gpio_set_function(3, GPIO_FUNC_PWM);
    
-    gpio_set_function(16, GPIO_FUNC_PWM);
-    gpio_set_function(17, GPIO_FUNC_PWM);
+    gpio_set_function(4, GPIO_FUNC_PWM);
+    gpio_set_function(5, GPIO_FUNC_PWM);
     // Find out which PWM slice is connected to GPIO 0 (it's slice 0)
     slice_num[0] = pwm_gpio_to_slice_num(3);
-    slice_num[1] = pwm_gpio_to_slice_num(0);
+    slice_num[1] = pwm_gpio_to_slice_num(4);
 
     // Set period
     pwm_set_wrap(slice_num[0], 3124);
@@ -123,32 +123,32 @@ void on_uart_rx() {
         switch(chars_rxed){
             case 3:
                 Olddata[0]=(sbus_data[1]|(sbus_data[2]<<8)&0x07ff);
-		Data1=(float)(Olddata[0]-CH1MIN)/(CH1MAX-CH1MIN);
+	            	Data1=(float)(Olddata[0]-CH1MIN)/(CH1MAX-CH1MIN);
                 //printf("%04f ",Data1);
                 break;
             case 4:
                 Olddata[1]=(sbus_data[3]<<5|sbus_data[2]>>3)&0x07ff;	
-		Data2=(float)(Olddata[1]-CH2MIN)/(CH2MAX-CH2MIN);
+	             	Data2=(float)(Olddata[1]-CH2MIN)/(CH2MAX-CH2MIN);
                 //printf("%04f ",Data2);
                 break;
             case 6:
                 Olddata[2]=(sbus_data[3]>>6|sbus_data[4]<<2|sbus_data[5]<<10)&0x07ff;
-		Data3=(float)(Olddata[2]-CH3MIN)/(CH3MAX-CH3MIN);
-                //printf("%04f ",Data3);
+	            	Data3=(float)(Olddata[2]-CH3MIN)/(CH3MAX-CH3MIN);
+                printf("%04f\n ",Data3);
                 break;
             case 7:
                 Olddata[3]=(sbus_data[6]<<7|sbus_data[5]>>1)&0x07ff;
-		Data4=(float)(Olddata[3]-CH4MIN)/(CH4MAX-CH4MIN);
+	            	Data4=(float)(Olddata[3]-CH4MIN)/(CH4MAX-CH4MIN);
                 //printf("%04f ",Data4);
                 break;
             case 8:
                 Olddata[4]=(sbus_data[7]<<4|sbus_data[6]>>4)&0x07ff;
-		Data5=(float)(Olddata[4]-CH5MIN)/(CH5MAX-CH5MIN);
+	            	Data5=(float)(Olddata[4]-CH5MIN)/(CH5MAX-CH5MIN);
                 //printf("%04f ",Data5);
                 break;
             case 10:
                 Olddata[5]=(sbus_data[7]>>7|sbus_data[8]<<1|sbus_data[9]<<9)&0x07ff;
-		Data6=(float)(Olddata[5]-CH6MIN)/(CH6MAX-CH6MIN);
+	            	Data6=(float)(Olddata[5]-CH6MIN)/(CH6MAX-CH6MIN);
                 //printf("%04f ",Data6);
                 break;
                 

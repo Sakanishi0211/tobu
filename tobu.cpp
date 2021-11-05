@@ -1,6 +1,18 @@
 #include "pwm_uart.hpp"
 #include "ekf_sensor.hpp"
 
+
+//e エレベータ a エルロン r ラダー t スロットル
+float h=0.01;
+float kpe,kie,kde;
+float kpa,kia,kda;
+float kpr,kir,kdr;
+float shigma_e,shiguma_a,shiguma_r;
+float ref_e,ref_r,ref_a,err_e,err_a,err_r;
+float sk_e,sk_a,sk_r;
+float olderr_e,olderr_a,olderr_r;
+float dk_a,dk_e,dk_r;
+float se,sa,sr;
 /* Private macro -------------------------------------------------------------*/
 
 int main(void)
@@ -85,7 +97,7 @@ int main(void)
   stdio_init_all();
   pwm_settei();
   serial_settei();
-  imu_mag_init();
+ // imu_mag_init();
   
   for (i=0;i<waittime;i++)
   {
@@ -94,9 +106,9 @@ int main(void)
   }
   printf("#Start Kalman Filter\n");
   
-  while(t<endtime)
+  while(1/*t<endtime*/)
   {
-    s_time=time_us_64();
+   /* s_time=time_us_64();
     sleep_ms(10);
     //Control
     if(t>control_time)
@@ -139,7 +151,7 @@ int main(void)
     z       <<ax,ay,az,mx,my,mz;//ここに入れる
     //--Begin Extended Kalman Filter--
     ekf(xp, xe, P, z, omega_m, Q, R, G*dt, beta, dt);
-   /* if(counter%sample==0)
+    if(counter%sample==0)
     {
 		imu_mag_data_read();
                 phl=Phl(xe);
@@ -147,11 +159,61 @@ int main(void)
                 psi=Psi(xe);
         
     
-   } */
-    Duty_fr=Data3+((Data2-.5)-(Data4-.5)-(Data1-.5))*seigyo;
-    Duty_fl=Data3+(-1.5+Data2+Data4+Data1)*seigyo;
-    Duty_rr=Data3+(-(Data2-.5)-(Data4-.5)+(Data1-.5))*seigyo;         
-    Duty_rl=Data3+(-(Data2-.5)+(Data4-.5)-(Data1-.5))*seigyo;
+   }*/ 
+/*    //姿勢安定化
+    //最大角度30°
+    ref_e=Data2 * 0.523598775;
+    ref_a=Data4 * 0.523598775;
+    ref_r=Data1 * 0.523598775;
+    //エレベータ
+    olderr_e=err_e;
+    err_e=ref_e - psi;
+    if (sk_e<=30000){
+      sk_e=sk_e+olderr_e;
+    }
+    else if(-30000<=sk_e){
+      sk_e=sk_e+olderr_e;
+    }
+    dk_e=(err_e-olderr_e)*100;
+    se=kpe*err_e+kie*sk_e+kde*dk_e;
+
+    //エルロン
+ 
+    olderr_a=err_a;
+    err_a=ref_a - psi;
+    if (sk_a<=30000){
+      sk_a=sk_a+olderr_a;
+    }
+    else if(-30000<=sk_a){
+      sk_a=sk_a+olderr_a;
+    }
+    dk_a=(err_a-olderr_a)*100;
+    sa=kpa*err_a+kia*sk_a+kda*dk_a;
+
+    //ラダー
+        
+    olderr_r=err_r;
+    err_r=ref_r - psi;
+    if (sk_r<=30000){
+      sk_r=sk_r+olderr_r;
+    }
+    else if(-30000<=sk_r){
+      sk_r=sk_r+olderr_r;
+    }
+    dk_r=(err_r-olderr_r)*100;
+    sr=kpr*err_r+kir*sk_r+kdr*dk_r;
+
+
+    Duty_fr=Data3+se-sa-sr;
+    Duty_fl=Data3+se+sa+sr;
+    Duty_rr=Data3-se-sa+sr;         
+    Duty_rl=Data3-se+sa-sr;
+*/
+   
+    Duty_fr=Data3;
+    Duty_fl=Data3;
+    Duty_rr=Data3;         
+    Duty_rl=Data3;
 
     tight_loop_contents();
     duty_rr=(float)(DUTYMAX-DUTYMIN)*Duty_rr+DUTYMIN;
@@ -170,7 +232,7 @@ int main(void)
     pwm_set_chan_level(slice_num[0], PWM_CHAN_B, duty_fr);
     pwm_set_chan_level(slice_num[1], PWM_CHAN_A, duty_rl);
     pwm_set_chan_level(slice_num[1], PWM_CHAN_B, duty_fl);
-    printf("%04f %04f %04f %04f %04f %04f %04f %04f %04f %04f %04f \n",Data1,Data2,Data3,Data4,Data5,Data6,xe(0,0), xe(1,0), xe(2,0),xe(3,0), xe(4,0));  
+    //printf("%04f %04f %04f %04f %04f %04f %04f %04f %04f %04f \n",Data1,Data2,Data3,Data4,Data5,Data6,xe(0,0), xe(1,0), xe(2,0),xe(3,0));  
     sleep_ms(10);
   }
 }
